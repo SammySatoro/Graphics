@@ -5,6 +5,7 @@ from pygame.locals import *
 
 from OpenGL.GL import *
 from OpenGL.GLU import *
+from OpenGL.GLUT import *
 
 def lab1():
     def frange(x, y, jump):
@@ -295,4 +296,225 @@ def lab2():
 
     display()
 
-lab2()
+
+
+def lab3():
+
+
+    def draw_sphere(x, y, z, radius, color):
+        sphere = gluNewQuadric()
+        glTranslatef(x, y, z)  # coords
+        glColor3f(*color)  # color
+        gluSphere(sphere, radius, 20, 20)  # draw sphere
+
+
+    def draw_pyramid(x, y, z, size=1.0, color=(1.0, 1.0, 1.0, 1.0)):
+        glBegin(GL_TRIANGLES)
+        glColor4f(*color)
+
+        glVertex3fv((0.0 + x, 0.0 + y, 0.0 + z))
+        glVertex3fv(((0.5*size) + x, (0.2 * size) + y, 0.0 + z))
+        glVertex3fv(((0.75 * size) + x, 0.0 + y, (0.5 * size) + z))
+
+        glVertex3fv((0.0 + x, 0.0 + y, 0.0 + z))
+        glVertex3fv(((0.5 * size) + x, -(0.2 * size) + y, 0.0 + z))
+        glVertex3fv(((0.75 * size) + x, 0.0 + y, (0.5 * size) + z))
+
+        glEnd()
+
+
+    def display():
+        pg.init()
+        display = (1200, 900)
+        scree = pg.display.set_mode(display, DOUBLEBUF | OPENGL)
+
+        glEnable(GL_DEPTH_TEST)
+        glEnable(GL_LIGHTING)
+        glShadeModel(GL_SMOOTH)
+        glEnable(GL_COLOR_MATERIAL)
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE)
+
+        glEnable(GL_LIGHT0)
+        glLightfv(GL_LIGHT0, GL_AMBIENT, [0.5, 0.5, 0.5, 1])
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1.0, 1.0, 1.0, 1])
+
+
+        glMatrixMode(GL_PROJECTION)
+        gluPerspective(45, (display[0] / display[1]), 0.1, 50.0)
+
+        glMatrixMode(GL_MODELVIEW)
+        gluLookAt(0, -8, 0, 0, 0, 0, 0, 0, 1)
+        viewMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
+        glLoadIdentity()
+        displayCenter = [scree.get_size()[i] // 2 for i in range(2)]
+        mouseMove = [0, 0]
+        pg.mouse.set_pos(displayCenter)
+
+        pg.mouse.set_visible(False)
+        up_down_angle = 0.0
+        paused = False
+        run = True
+        while run:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    run = False
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE or event.key == pg.K_RETURN:
+                        run = False
+                    if event.key == pg.K_PAUSE or event.key == pg.K_p:
+                        paused = not paused
+                        pg.mouse.set_pos(displayCenter)
+                if not paused:
+                    if event.type == pg.MOUSEMOTION:
+                        mouseMove = [event.pos[i] - displayCenter[i] for i in range(2)]
+                    pg.mouse.set_pos(displayCenter)
+
+            if not paused:
+                # get keys
+                keypress = pg.key.get_pressed()
+                # mouseMove = pygame.mouse.get_rel()
+
+                # init model view matrix
+                glLoadIdentity()
+
+                # apply the look up and down
+                up_down_angle += mouseMove[1] * 0.1
+                glRotatef(up_down_angle, 1.0, 0.0, 0.0)
+
+                # init the view matrix
+                glPushMatrix()
+                glLoadIdentity()
+                ms = 0.06
+                # apply the movment
+                if keypress[pg.K_w]:
+                    glTranslatef(0, 0, ms)
+                if keypress[pg.K_s]:
+                    glTranslatef(0, 0, -ms)
+                if keypress[pg.K_d]:
+                    glTranslatef(-ms, 0, 0)
+                if keypress[pg.K_a]:
+                    glTranslatef(ms, 0, 0)
+
+                # apply the left and right rotation
+                glRotatef(mouseMove[0] * 0.1, 0.0, 1.0, 0.0)
+
+            # multiply the current matrix by the get the new view matrix and store the final view matrix
+            glMultMatrixf(viewMatrix)
+            viewMatrix = glGetFloatv(GL_MODELVIEW_MATRIX)
+
+            # apply view matrix
+            glPopMatrix()
+            glMultMatrixf(viewMatrix)
+
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)  # Clear the screen
+
+            # glPushMatrix()
+
+            draw_sphere(0.0, 0.0, 0.0, 0.5, (0.8, 0.7, 0.6))        # head
+
+            draw_sphere(0.42, 0.2, 0.0, 0.1, (0.8, 0.7, 1.0))       # eye
+            draw_sphere(0.0, -0.4, 0.0, 0.1, (0.8, 0.7, 1.0))       # eye
+            draw_sphere(0.065, 0.0, 0.0, 0.05, (0.0, 0.0, 0.0))     # pupil
+            draw_sphere(0.0, 0.4, 0.0, 0.05, (0.0, 0.0, 0.0))       # pupil
+
+            draw_sphere(-0.03, -0.2, -0.15, 0.07, (1.0, 0.5, 0.5))  # nose
+            draw_sphere(-0.1, 0.08, -0.035, 0.15, (0.8, 0.8, 0.7))  #
+            draw_sphere(0.0, -0.16, 0.0, 0.15, (0.8, 0.8, 0.7))     #
+
+            draw_pyramid(-0.5, 0.3, 0.39, 0.8, (0.85, 0.75, 0.65, 1.0))     # ear
+            draw_pyramid(-0.5, 0.3, 0.38, 0.8, (1.0, 0.5, 0.5, 1.0))        #
+
+            draw_pyramid(-0.5, -0.1, 0.39, 0.8, (0.85, 0.75, 0.65, 1.0))    # ear
+            draw_pyramid(-0.5, -0.1, 0.38, 0.8, (1.0, 0.5, 0.5, 1.0))       #
+
+            draw_sphere(-0.7, 0.08, -0.1, 0.3, (0.8, 0.7, 0.6))     # neck
+
+            draw_sphere(-0.3, 0.0, -0.18, 0.45, (0.8, 0.7, 0.6))    # body
+            for i in range(8):                                      #
+                draw_sphere(-0.1, 0.0, 0.0, 0.45, (0.8, 0.7, 0.6))  #
+
+            # left front paw
+            draw_sphere(0.9, 0.25, -0.2, 0.2, (0.8, 0.7, 0.6))
+            for i in range(6):
+                draw_sphere(-0.01, 0.01, -0.07, 0.2 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(6):
+                draw_sphere(0.03, 0.01, -0.07, 0.17 - (i / 100), (0.8, 0.7, 0.6))
+            draw_sphere(0.0, 0.0, 0.0, 0.13, (0.8, 0.8, 0.7))
+
+            draw_sphere(0.1, -0.12, -0.05, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+
+            # right front paw
+            draw_sphere(-0.24, -0.75, 0.9, 0.2, (0.8, 0.7, 0.6))
+            for i in range(6):
+                draw_sphere(-0.01, -0.01, -0.07, 0.2 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(6):
+                draw_sphere(0.03, -0.01, -0.07, 0.17 - (i / 100), (0.8, 0.7, 0.6))
+            draw_sphere(0.0, 0.0, 0.0, 0.13, (0.8, 0.8, 0.7))
+            draw_sphere(0.1, 0.12, -0.05, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+
+            # right back paw
+            draw_sphere(-1.2, 0.25, 0.9, 0.25, (0.8, 0.7, 0.6))
+            for i in range(4):
+                draw_sphere(0.02, 0.0, -0.07, 0.25 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(5):
+                draw_sphere(-0.02, 0.0, -0.07, 0.2 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(3):
+                draw_sphere(0.03, 0.0, -0.07, 0.15 - (i / 100), (0.8, 0.7, 0.6))
+
+            draw_sphere(0.0, 0.0, 0.0, 0.14, (0.8, 0.8, 0.7))
+            draw_sphere(0.1, 0.12, -0.05, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, -0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+
+            # left back paw
+            draw_sphere(-0.15, 0.65, 0.9, 0.25, (0.8, 0.7, 0.6))
+            for i in range(4):
+                draw_sphere(0.02, 0.0, -0.07, 0.25 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(5):
+                draw_sphere(-0.02, 0.0, -0.07, 0.2 - (i / 100), (0.8, 0.7, 0.6))
+            for i in range(3):
+                draw_sphere(0.03, 0.0, -0.07, 0.15 - (i / 100), (0.8, 0.7, 0.6))
+
+            draw_sphere(0.0, 0.0, 0.0, 0.14, (0.8, 0.8, 0.7))
+            draw_sphere(0.1, -0.12, -0.05, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            draw_sphere(0.0, 0.08, 0.0, 0.08, (0.8, 0.8, 0.7))
+            # glPopMatrix()
+
+
+            # tail
+            draw_sphere(-0.3, -0.38, 1.2, 0.25, (0.8, 0.7, 0.6))
+            draw_sphere(-0.2, 0.0, 0.1, 0.1, (0.8, 0.7, 0.6))
+            for i in range(5):
+                draw_sphere(-0.02, 0.0, 0.05, 0.1, (0.8, 0.7, 0.6))
+            for i in range(2):
+                draw_sphere(0.0, 0.0, 0.05, 0.1, (0.8, 0.7, 0.6))
+            for i in range(3):
+                draw_sphere(0.02, 0.0, 0.05, 0.1, (0.8, 0.7, 0.6))
+            for i in range(2):
+                draw_sphere(0.02, 0.0, 0.03, 0.1, (0.8, 0.7, 0.6))
+            for i in range(4):
+                draw_sphere(0.02, 0.0, 0.04, 0.1, (0.8, 0.7, 0.6))
+            for i in range(5):
+                draw_sphere(0.02, 0.0, 0.04, 0.1 - (i / 100), (0.8, 0.8, 0.7))
+            for i in range(5):
+                draw_sphere(0.02, 0.0, 0.04 - (i / 100), 0.05 - (i / 100), (0.8, 0.8, 0.7))
+
+            pg.display.flip()  # Update the screen
+            pg.time.wait(10)
+
+        pg.quit()
+
+    display()
+
+if __name__ == '__main__':
+
+    lab3()
