@@ -757,6 +757,121 @@ def lab4():
     pg.quit()
 
 
+def lab5():
+    import sys
+
+    global x_rotation
+    global y_rotation
+    global ambient
+    global torcolor
+    global lightpos
+    global x_light_rotation
+    global y_light_rotation
+    global z_light_rotation
+
+    def init():
+        global x_rotation
+        global y_rotation
+        global ambient
+        global torcolor
+        global lightpos
+        global x_light_rotation
+        global y_light_rotation
+        global z_light_rotation
+        x_rotation = 0.0
+        y_rotation = 0.0
+        ambient = (0.0, 1.0, 0.0, 1.0)
+        # ambient = (1.0, 1.0, 1.0, 1.0)
+        torcolor = (0.9, 0.6, 0.3, 1.0)
+        x_light_rotation = 1.0
+        y_light_rotation = 1.0
+        z_light_rotation = 1.0
+        lightpos = (x_light_rotation, y_light_rotation, z_light_rotation)
+
+        glClearColor(0.75, 0.75, 0.75, 1.0)
+        gluOrtho2D(-1.0, 1.0, -1.0, 1.0)
+        glRotatef(0, 1.0, 0.0, 0.0)
+        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient)
+        glEnable(GL_LIGHTING)
+        glEnable(GL_LIGHT0)
+        glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
+
+
+    def speckeys(key, x, y):
+        global x_rotation
+        global y_rotation
+        global x_light_rotation
+        global y_light_rotation
+        global z_light_rotation
+
+        if key == GLUT_KEY_UP:
+            x_rotation -= 0.5
+        if key == GLUT_KEY_DOWN:
+            x_rotation += 0.5
+        if key == GLUT_KEY_LEFT:
+            y_rotation -= 0.5
+        if key == GLUT_KEY_RIGHT:
+            y_rotation += 0.5
+
+        if key == GLUT_KEY_F1:
+            x_light_rotation -= 0.5
+        if key == GLUT_KEY_F2:
+            x_light_rotation += 0.5
+        if key == GLUT_KEY_F3:
+            y_light_rotation -= 0.5
+        if key == GLUT_KEY_F4:
+            y_light_rotation += 0.5
+        if key == GLUT_KEY_F5:
+            z_light_rotation -= 0.5
+        if key == GLUT_KEY_F6:
+            z_light_rotation += 0.5
+
+        glutPostRedisplay()
+
+
+
+    def draw():
+        global x_rotation
+        global y_rotation
+        global x_light_rotation
+        global y_light_rotation
+        global z_light_rotation
+        global lightpos
+        global greencolor
+        global torcolor
+        global lightpos
+
+        lightpos = (x_light_rotation, y_light_rotation, z_light_rotation)
+        glClear(GL_COLOR_BUFFER_BIT)
+        glPushMatrix()  # Сохраняем текущее положение "камеры"
+        glRotatef(x_rotation, 1.0, 0.0, 0.0)
+        glRotatef(y_rotation, 0.0, 1.0, 0.0)
+        glLightfv(GL_LIGHT0, GL_POSITION, lightpos)
+
+        # Устанавливаем материал: рисовать с 2 сторон, освещение зеркальных бликов, зеленый цвет
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, torcolor)
+        glTranslatef(0.0, 0.0, 0.2)  # Сдвинемся по оси Z на 0.2
+
+        glutSolidTorus(0.2, 0.5, 48, 48)
+
+        glPopMatrix()
+        glutSwapBuffers()
+
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB)
+
+    glutInitWindowSize(600, 600)
+    glutInitWindowPosition(660, 240)
+
+    glutInit(sys.argv)
+    glutCreateWindow("God Of Lightning")
+
+    glutDisplayFunc(draw)
+    glutSpecialFunc(speckeys)
+
+    init()
+    glutMainLoop()
+
+
 if __name__ == '__main__':
 
-    lab4()
+    lab5()
