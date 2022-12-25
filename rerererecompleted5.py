@@ -2,9 +2,7 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 import sys
-import math
 
-import glfw
 import pygame as pg
 from pygame.locals import *
 
@@ -22,7 +20,7 @@ def lab5():
 
     # GL_EMISSION - цвет собственного излучения материала (светящийся)
     # just in case - GL_AMBIENT_AND_DIFFUSE
-    # Из-за фонового (glLightfv(GL_LIGHT0, GL_AMBIENT, [0.0, 1.0, 0.0, 1.0]) 123 строка) света
+    # Из-за фонового (glLightfv(GL_LIGHT0, GL_AMBIENT, [0.0, 1.0, 0.0, 1.0]) 121 строка) света
     # и свечения материала верхняя часть тора светится белым, хотя источник света зеленый
     glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, [0.1, 0.7, 0.1, 0.6])
     glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 5)
